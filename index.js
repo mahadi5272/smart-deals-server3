@@ -30,7 +30,25 @@ async function run() {
     await client.connect();
     const db = client.db("smart-deals");
     const productcollection = db.collection("products");
+    const bidcollection = db.collection("bids")
+    const userscollection = db.collection("users")
 
+    // users
+    app.post('/users',async(req,res)=>{
+        const newUser = req.body;
+        const email = req.query.email;
+        const queary = {email:email}
+        const existingUser = userscollection.findOne(queary);
+         
+        if(existingUser){
+            res.send({message:'do not distrub'})
+        }else{
+            const result = userscollection.insertOne(newUser)
+            res.send(result)
+        }
+    })
+
+    // products
     app.get("/products",async(req,res)=>{
         const cursor = productcollection.find().skip(5).limit(5).sort({price_min:-1})
         const result =await cursor.toArray()
@@ -76,6 +94,9 @@ async function run() {
         if(email){
             queary.buyer_email =  email;
         }
+        const cursor = bidcollection.find(queary);
+        const result = cursor.toArray()
+        res.send(result)
     })
 
     // Send a ping to confirm a successful connection
